@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KD Groupe — Expédition de colis d'Abidjan vers Paris et service d'achat à l'international.">
+  <meta name="theme-color" content="#003b25">
+  <link rel="icon" type="image/png" href="assets/kd-groupe-logo.png">
+  <title>KD Groupe | Abidjan → Paris</title>
+
+  <style>
+    :root{
+      --green:#003b25;
+      --green-2:#075536;
+      --lime:#5fb341;
+      --lime-soft:#eaf5e6;
+      --ink:#10261d;
+      --muted:#65746c;
+      --bg:#f5f7f5;
+      --white:#fff;
+      --line:#dfe7e1;
+      --shadow:0 18px 50px rgba(0,59,37,.10);
+      --radius:20px;
+      --max:1180px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);background:#fff;line-height:1.55;
+    }
+    a{text-decoration:none;color:inherit}
+    button,input{font:inherit}
+    .container{width:min(var(--max),92%);margin:auto}
+
+    /* HEADER */
+    header{
+      position:sticky;top:0;z-index:1000;
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--line);
+    }
+    .nav{height:82px;display:flex;align-items:center;justify-content:space-between;gap:28px}
+    .brand img{width:148px;height:64px;object-fit:contain;object-position:left center}
+    .nav-links{display:flex;align-items:center;gap:25px;font-size:.9rem;font-weight:700;color:#35483f}
+    .nav-links a:hover{color:var(--green)}
+    .nav-actions{display:flex;align-items:center;gap:10px}
+    .nav-quote{
+      background:var(--green);color:#fff;padding:12px 17px;border-radius:9px;font-weight:850;
+    }
+    .menu{display:none;border:0;background:transparent;font-size:1.6rem;color:var(--green)}
+
+    /* BUTTONS */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:9px;
+      padding:14px 19px;border-radius:9px;font-weight:850;
+      transition:.2s ease;border:1px solid transparent;
+    }
+    .btn-green{background:var(--green);color:#fff}
+    .btn-green:hover{background:var(--green-2);transform:translateY(-1px)}
+    .btn-lime{background:var(--lime);color:#fff}
+    .btn-light{background:#fff;border-color:var(--line);color:var(--green)}
+    .btn-light:hover{border-color:#b9c8bd}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--green);font-size:.78rem;font-weight:900;
+      text-transform:uppercase;letter-spacing:.1em;margin-bottom:15px;
+    }
+    .eyebrow:before{content:"";width:24px;height:3px;border-radius:5px;background:var(--lime)}
+
+    /* HERO */
+    .hero{
+      background:var(--green);
+      color:#fff;overflow:hidden;position:relative;
+    }
+    .hero:before{
+      content:"";position:absolute;width:680px;height:680px;border-radius:50%;
+      right:-300px;top:-300px;border:110px solid rgba(95,179,65,.12);
+    }
+    .hero-grid{
+      min-height:600px;display:grid;grid-template-columns:1.05fr .95fr;
+      gap:55px;align-items:center;position:relative;z-index:1;
+    }
+    .hero .eyebrow{color:#cfe4d7}
+    .hero .eyebrow:before{background:var(--lime)}
+    h1{
+      font-size:clamp(3rem,5.8vw,5.4rem);line-height:.98;
+      letter-spacing:-.065em;max-width:700px;
+    }
+    h1 span{color:#9bdc83}
+    .hero-copy{color:#d3e2da;max-width:620px;font-size:1.05rem;margin:24px 0 30px}
+    .hero-buttons{display:flex;gap:11px;flex-wrap:wrap}
+    .hero .btn-light{background:#fff;color:var(--green);border-color:#fff}
+
+    /* ROUTE VISUAL */
+    .route-card{
+      min-height:395px;border:1px solid rgba(255,255,255,.13);
+      background:rgba(255,255,255,.055);border-radius:26px;
+      padding:28px;position:relative;overflow:hidden;
+    }
+    .route-card:before{
+      content:"";position:absolute;inset:25px;border:1px dashed rgba(255,255,255,.16);
+      border-radius:20px;
+    }
+    .route-label{position:relative;z-index:2;display:flex;justify-content:space-between;font-size:.75rem;color:#bad0c5;font-weight:800}
+    .route-title{position:relative;z-index:2;margin-top:8px;font-size:1.35rem;font-weight:900}
+    .map-line{
+      position:absolute;left:14%;right:14%;top:53%;
+      height:2px;background:linear-gradient(90deg,var(--lime),#fff,var(--lime));
+      box-shadow:0 0 20px rgba(95,179,65,.35);
+      transform:rotate(-12deg);
+    }
+    .map-line:after{
+      content:"";position:absolute;right:0;top:-5px;
+      border-left:11px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;
+    }
+    .route-dot{position:absolute;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 0 0 7px rgba(95,179,65,.18);z-index:3}
+    .route-dot.a{left:13%;top:60%}.route-dot.b{right:12%;top:40%}
+    .route-city{position:absolute;z-index:3;font-size:.75rem;font-weight:900}
+    .route-city.a{left:8%;top:65%}.route-city.b{right:6%;top:34%}
+    .plane{
+      position:absolute;left:48%;top:49%;transform:rotate(-12deg);
+      font-size:2.4rem;filter:drop-shadow(0 10px 15px rgba(0,0,0,.25));z-index:3;
+    }
+    .route-info{
+      position:absolute;left:25px;right:25px;bottom:24px;z-index:4;
+      background:#fff;color:var(--green);border-radius:13px;padding:14px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:15px;
+    }
+    .route-info strong{display:block;font-size:1.05rem}
+    .route-info span{font-size:.75rem;color:var(--muted)}
+
+    /* QUICK ACTIONS */
+    .quick{margin-top:-35px;position:relative;z-index:5}
+    .quick-grid{
+      display:grid;grid-template-columns:1fr 1fr 1fr;
+      background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px;overflow:hidden;
+    }
+    .quick-card{
+      padding:25px 26px;display:flex;align-items:center;gap:16px;
+      border-right:1px solid var(--line);
+    }
+    .quick-card:last-child{border-right:0}
+    .q-icon{
+      width:46px;height:46px;flex:0 0 46px;border-radius:12px;
+      background:var(--lime-soft);display:grid;place-items:center;color:var(--green);font-size:1.3rem;
+    }
+    .quick-card strong{display:block;color:var(--green);font-size:.95rem}
+    .quick-card span{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+
+    /* COMMON */
+    section{padding:95px 0}
+    .section-head{max-width:730px;margin-bottom:42px}
+    .kicker{color:var(--green);font-size:.76rem;font-weight:950;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px}
+    h2{color:var(--green);font-size:clamp(2.1rem,4vw,3.5rem);line-height:1.05;letter-spacing:-.055em}
+    .lead{color:var(--muted);margin-top:14px;max-width:670px}
+
+    /* SERVICES */
+    .services{background:var(--bg)}
+    .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .service{
+      background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+      padding:30px;min-height:275px;position:relative;overflow:hidden;
+      transition:.2s ease;
+    }
+    .service:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+    .service:after{
+      content:"";position:absolute;width:180px;height:180px;border-radius:50%;
+      right:-90px;bottom:-90px;background:var(--lime-soft);
+    }
+    .service-num{font-size:.72rem;color:#91a197;font-weight:950;letter-spacing:.1em}
+    .service-icon{
+      width:58px;height:58px;border-radius:14px;background:var(--green);color:#fff;
+      display:grid;place-items:center;font-size:1.45rem;margin:22px 0 17px;
+    }
+    .service h3{font-size:1.25rem;color:var(--green);margin-bottom:7px}
+    .service p{color:var(--muted);font-size:.9rem;max-width:520px}
+    .service a{display:inline-block;margin-top:20px;color:var(--green);font-size:.88rem;font-weight:900;position:relative;z-index:2}
+
+    /* CALENDAR */
+    .calendar-wrap{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+    .calendar-top{
+      padding:22px 25px;background:var(--green);color:#fff;
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+    .calendar-top strong{font-size:1.05rem}
+    .calendar-top span{font-size:.78rem;color:#c7d9d0}
+    .week-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+    .day{padding:22px 10px;text-align:center;border-right:1px solid var(--line);min-height:125px}
+    .day:last-child{border-right:0}
+    .day span{font-size:.68rem;color:#91a197;font-weight:900;letter-spacing:.08em}
+    .day strong{display:block;color:var(--green);font-size:.94rem;margin:9px 0 7px}
+    .day small{font-size:.7rem;color:#9aa69f}
+    .day.active{background:#f5faF3}
+    .day.active:before{
+      content:"";display:block;width:9px;height:9px;border-radius:50%;margin:0 auto;
+      background:var(--lime);box-shadow:0 0 0 5px rgba(95,179,65,.13);
+    }
+    .day.active small{color:var(--green);font-weight:850}
+    .calendar-bottom{
+      padding:17px 22px;border-top:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+    .calendar-bottom p{color:var(--muted);font-size:.82rem}
+    .calendar-bottom strong{color:var(--green)}
+
+    /* PROCESS */
+    .process{background:var(--bg)}
+    .process-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .step{background:#fff;border:1px solid var(--line);border-radius:17px;padding:24px;position:relative}
+    .step-num{
+      width:42px;height:42px;border-radius:50%;background:var(--green);color:#fff;
+      display:grid;place-items:center;font-size:.82rem;font-weight:900;margin-bottom:20px;
+    }
+    .step h3{font-size:1rem;color:var(--green);margin-bottom:7px}
+    .step p{font-size:.83rem;color:var(--muted)}
+
+    /* QUOTE / TRACK */
+    .contact-band{background:#fff}
+    .contact-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    .quote{
+      background:var(--green);color:#fff;border-radius:24px;padding:38px;
+    }
+    .quote h2{color:#fff}
+    .quote p{color:#c8dbd1;margin:14px 0 23px;max-width:550px}
+    .quote .btn-lime{margin-top:4px}
+    .track{
+      background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:32px;
+    }
+    .track h3{color:var(--green);font-size:1.35rem;margin-bottom:7px}
+    .track p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+    .track-row{display:flex;gap:9px}
+    .track input{
+      min-width:0;flex:1;padding:13px 14px;border:1px solid #cfd9d2;border-radius:9px;outline:none;background:#fff;
+    }
+    .track input:focus{border-color:var(--lime)}
+    .track button{border:0;cursor:pointer;padding:13px 15px;border-radius:9px;background:var(--green);color:#fff;font-weight:850}
+    .track-note{margin-top:12px;font-size:.72rem;color:#87958d}
+
+    /* WHY */
+    .why-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:75px;align-items:center}
+    .why-card{
+      min-height:360px;border-radius:25px;background:var(--green);color:#fff;padding:35px;
+      position:relative;overflow:hidden;
+    }
+    .why-card:after{
+      content:"";position:absolute;width:330px;height:330px;border-radius:50%;
+      right:-160px;top:-130px;border:75px solid rgba(95,179,65,.14);
+    }
+    .why-card img{width:190px;height:190px;object-fit:contain;filter:brightness(0) invert(1);opacity:.95}
+    .why-card p{color:#c8dbd1;max-width:310px;margin-top:18px}
+    .why-list{display:grid;gap:22px}
+    .why-item{display:flex;gap:14px}
+    .check{width:35px;height:35px;flex:0 0 35px;border-radius:10px;background:var(--lime-soft);color:var(--green);display:grid;place-items:center;font-weight:950}
+    .why-item h3{color:var(--green);font-size:1rem;margin-bottom:3px}
+    .why-item p{color:var(--muted);font-size:.86rem}
+
+    /* FOOTER */
+    footer{background:#022518;color:#bdd0c6;padding:55px 0 24px}
+    .footer-grid{display:grid;grid-template-columns:1.4fr .7fr .8fr;gap:50px}
+    .footer-brand img{width:155px;height:68px;object-fit:contain;object-position:left center;filter:brightness(0) invert(1)}
+    footer p{font-size:.84rem;max-width:390px;margin-top:10px}
+    footer h4{color:#fff;font-size:.9rem;margin-bottom:13px}
+    footer ul{list-style:none;display:grid;gap:8px;font-size:.82rem}
+    footer a:hover{color:#fff}
+    .copyright{border-top:1px solid rgba(255,255,255,.1);margin-top:40px;padding-top:18px;display:flex;justify-content:space-between;gap:20px;font-size:.72rem}
+
+    /* WHATSAPP */
+    .whatsapp{
+      position:fixed;right:19px;bottom:19px;z-index:1200;width:59px;height:59px;border-radius:50%;
+      background:#25d366;color:#fff;display:grid;place-items:center;
+      box-shadow:0 12px 28px rgba(0,0,0,.2);
+      transition:.2s ease;
+    }
+    .whatsapp:hover{transform:translateY(-3px) scale(1.03)}
+    .whatsapp svg{width:31px;height:31px}
+
+    @media(max-width:900px){
+      .nav-links,.nav-actions{display:none}
+      .menu{display:block}
+      .hero-grid,.contact-grid,.why-grid{grid-template-columns:1fr}
+      .hero-grid{padding:80px 0}
+      .route-card{min-height:350px}
+      .quick-grid{grid-template-columns:1fr}
+      .quick-card{border-right:0;border-bottom:1px solid var(--line)}
+      .quick-card:last-child{border-bottom:0}
+      .process-grid{grid-template-columns:1fr 1fr}
+      .week-grid{grid-template-columns:repeat(4,1fr)}
+      .day:nth-child(4){border-right:0}
+      .day:nth-child(n+5){border-top:1px solid var(--line)}
+    }
+
+    @media(max-width:600px){
+      .nav{height:72px}
+      .brand img{width:130px;height:58px}
+      section{padding:72px 0}
+      .hero-grid{padding:65px 0}
+      h1{font-size:3.25rem}
+      .hero-copy{font-size:.96rem}
+      .route-card{min-height:315px}
+      .route-info{left:16px;right:16px;bottom:16px}
+      .service-grid,.process-grid{grid-template-columns:1fr}
+      .week-grid{grid-template-columns:repeat(2,1fr)}
+      .day{border-bottom:1px solid var(--line)}
+      .day:nth-child(even){border-right:0}
+      .calendar-top,.calendar-bottom{align-items:flex-start;flex-direction:column}
+      .track-row{flex-direction:column}
+      .track button{width:100%}
+      .quote,.track{padding:28px 22px}
+      .why-card{min-height:310px}
+      .footer-grid{grid-template-columns:1fr}
+      .copyright{display:block}
+      .copyright span{display:block;margin-top:7px}
+    }
+  
+    /* KD GROUPE BANNER */
+    .kd-banner-section{padding:34px 0 76px;background:#fff}
+    .kd-banner-wrap{width:min(980px,92%);margin:0 auto}
+    .kd-banner{
+      display:block;width:100%;height:auto;border-radius:22px;
+      box-shadow:0 20px 55px rgba(0,59,37,.14);
+      border:1px solid rgba(0,59,37,.08);
+      transition:transform .25s ease,box-shadow .25s ease;
+    }
+    .kd-banner:hover{transform:translateY(-2px);box-shadow:0 26px 65px rgba(0,59,37,.17)}
+    @media(max-width:760px){
+      .kd-banner-section{padding:24px 0 58px}
+      .kd-banner-wrap{width:min(94%,560px)}
+      .kd-banner{border-radius:16px;box-shadow:0 14px 38px rgba(0,59,37,.13)}
+    }
+
+    /* ANIMATIONS */
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+    .reveal.in{opacity:1;transform:translateY(0)}
+    .plane{animation:fly 3.6s ease-in-out infinite}
+    @keyframes fly{
+      0%{left:15%;opacity:0}
+      8%{opacity:1}
+      92%{opacity:1}
+      100%{left:78%;opacity:0}
+    }
+    .day.active:before{animation:pulse 2.2s ease-in-out infinite}
+    @keyframes pulse{
+      0%,100%{box-shadow:0 0 0 5px rgba(95,179,65,.13)}
+      50%{box-shadow:0 0 0 9px rgba(95,179,65,.22)}
+    }
+    .whatsapp{animation:wa-pulse 2.6s ease-in-out infinite}
+    @keyframes wa-pulse{
+      0%,100%{box-shadow:0 12px 28px rgba(0,0,0,.2),0 0 0 0 rgba(37,211,102,.35)}
+      50%{box-shadow:0 12px 28px rgba(0,0,0,.2),0 0 0 10px rgba(37,211,102,0)}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .reveal{opacity:1;transform:none;transition:none}
+      .plane{animation:none}
+      .day.active:before{animation:none}
+      .whatsapp{animation:none}
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="container nav">
+    <a href="#accueil" class="brand" aria-label="KD Groupe">
+      <img src="assets/kd-groupe-logo.png" alt="KD Groupe — Expédier en toute sécurité">
+    </a>
+
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="#accueil">Accueil</a>
+      <a href="#services">Nos services</a>
+      <a href="#calendrier">Départs</a>
+      <a href="#fonctionnement">Comment ça marche</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="nav-actions">
+      <a class="nav-quote" href="#devis">Demander un devis</a>
+    </div>
+
+    <button class="menu" aria-label="Ouvrir le menu">☰</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="accueil">
+    <div class="container hero-grid">
+      <div>
+        <div class="eyebrow">Expédition de colis</div>
+        <h1>Abidjan <span>→</span> Paris.<br>Simple. Clair. Sécurisé.</h1>
+        <p class="hero-copy">
+          Vous avez un colis à envoyer depuis Abidjan vers Paris ?
+          KD Groupe vous accompagne avec des départs quatre fois par semaine
+          et un service pensé pour vous faire gagner du temps.
+        </p>
+
+        <div class="hero-buttons">
+          <a class="btn btn-lime" href="#devis">Obtenir mon devis →</a>
+          <a class="btn btn-light" href="#fonctionnement">Comment ça marche ?</a>
+        </div>
+      </div>
+
+      <div class="route-card" aria-label="Trajet Abidjan Paris">
+        <div class="route-label"><span>TRAJET PRINCIPAL</span><span>01</span></div>
+        <div class="route-title">Votre colis quitte Abidjan pour Paris.</div>
+        <div class="map-line"></div>
+        <div class="route-dot a"></div>
+        <div class="route-dot b"></div>
+        <div class="route-city a">ABIDJAN</div>
+        <div class="route-city b">PARIS</div>
+        <div class="plane">✈</div>
+
+        <div class="route-info">
+          <div>
+            <strong>4 départs / semaine</strong>
+            <span>Lundi · Mercredi · Vendredi · Dimanche</span>
+          </div>
+          <span style="font-size:1.2rem;color:var(--lime)">●</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK ACTIONS -->
+  <div class="container quick">
+    <div class="quick-grid">
+      <a class="quick-card reveal" href="#devis">
+        <div class="q-icon">📦</div>
+        <div><strong>Envoyer un colis</strong><span>Demandez votre devis</span></div>
+      </a>
+      <a class="quick-card reveal" href="#services">
+        <div class="q-icon">🛒</div>
+        <div><strong>Acheter à l'international</strong><span>Découvrez notre service d'achat</span></div>
+      </a>
+      <a class="quick-card reveal" href="#suivi">
+        <div class="q-icon">⌁</div>
+        <div><strong>Suivre mon colis</strong><span>Retrouvez les informations de votre envoi</span></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <section class="services" id="services">
+    <div class="container">
+      <div class="section-head">
+        <div class="kicker">Nos services</div>
+        <h2>Deux solutions. Un seul objectif : vous simplifier la vie.</h2>
+        <p class="lead">Pas de catalogue compliqué. KD Groupe se concentre sur les services dont vous avez réellement besoin.</p>
+      </div>
+
+      <div class="service-grid">
+        <article class="service reveal">
+          <div class="service-num">01 / EXPÉDITION</div>
+          <div class="service-icon">📦</div>
+          <h3>Expédier un colis d'Abidjan vers Paris</h3>
+          <p>Préparez votre colis, indiquez-nous les informations nécessaires et recevez un devis adapté à votre envoi.</p>
+          <a href="#devis">Demander un devis →</a>
+        </article>
+
+        <article class="service reveal">
+          <div class="service-num">02 / ACHAT</div>
+          <div class="service-icon">🛒</div>
+          <h3>Acheter à l'international</h3>
+          <p>Vous souhaitez acheter un article à l'étranger ? KD Groupe vous accompagne dans votre démarche d'achat.</p>
+          <a href="#contact">Parler à un conseiller →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="calendrier">
+    <div class="container">
+      <div class="section-head">
+        <div class="kicker">Calendrier d'expédition</div>
+        <h2>Choisissez votre jour de départ.</h2>
+        <p class="lead">Nos expéditions au départ d'Abidjan sont organisées quatre fois par semaine.</p>
+      </div>
+
+      <div class="calendar-wrap">
+        <div class="calendar-top">
+          <strong>Départs Abidjan → Paris</strong>
+          <span>4 jours d'expédition chaque semaine</span>
+        </div>
+
+        <div class="week-grid">
+          <div class="day active reveal"><span>LUN</span><strong>Lundi</strong><small>Départ</small></div>
+          <div class="day reveal"><span>MAR</span><strong>Mardi</strong><small>Pas de départ</small></div>
+          <div class="day active reveal"><span>MER</span><strong>Mercredi</strong><small>Départ</small></div>
+          <div class="day reveal"><span>JEU</span><strong>Jeudi</strong><small>Pas de départ</small></div>
+          <div class="day active reveal"><span>VEN</span><strong>Vendredi</strong><small>Départ</small></div>
+          <div class="day reveal"><span>SAM</span><strong>Samedi</strong><small>Pas de départ</small></div>
+          <div class="day active reveal"><span>DIM</span><strong>Dimanche</strong><small>Départ</small></div>
+        </div>
+
+        <div class="calendar-bottom">
+          <p><strong>À retenir :</strong> contactez-nous avant votre dépôt pour confirmer les horaires et modalités.</p>
+          <a class="btn btn-green" href="#devis">Préparer mon envoi →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="process" id="fonctionnement">
+    <div class="container">
+      <div class="section-head">
+        <div class="kicker">Comment ça marche ?</div>
+        <h2>Votre expédition en quatre étapes.</h2>
+        <p class="lead">Nous voulons que vous sachiez exactement quoi faire, du premier contact jusqu'au départ de votre colis.</p>
+      </div>
+
+      <div class="process-grid">
+        <article class="step reveal"><div class="step-num">01</div><h3>Vous nous contactez</h3><p>Indiquez la nature de votre colis et sa destination.</p></article>
+        <article class="step reveal"><div class="step-num">02</div><h3>Nous établissons le devis</h3><p>Nous vous communiquons le tarif et les informations nécessaires.</p></article>
+        <article class="step reveal"><div class="step-num">03</div><h3>Votre colis est déposé</h3><p>Nous prenons en charge votre colis selon les modalités convenues.</p></article>
+        <article class="step reveal"><div class="step-num">04</div><h3>Il prend le départ</h3><p>Votre colis est expédié d'Abidjan vers Paris.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- KD GROUPE BANNER -->
+  <section class="kd-banner-section" aria-label="KD Groupe — Abidjan Paris">
+    <div class="kd-banner-wrap">
+      <img class="kd-banner" src="assets/attieke-dabou-promo.jpeg" alt="Ton Attiéké de Dabou expédié en 24h chez KD Groupe Transit — Abidjan Paris">
+    </div>
+  </section>
+
+  <!-- QUOTE + TRACK -->
+  <section class="contact-band" id="contact">
+    <div class="container contact-grid">
+      <div class="quote" id="devis">
+        <div class="kicker" style="color:#9bdc83">Demande de devis</div>
+        <h2>Combien coûte votre expédition ?</h2>
+        <p>
+          Le tarif dépend des caractéristiques de votre envoi.
+          Contactez-nous avec les informations de votre colis et recevez une estimation adaptée.
+        </p>
+        <a class="btn btn-lime" href="https://wa.me/2250501978675?text=Bonjour%20KD%20Groupe%2C%20je%20souhaite%20obtenir%20un%20devis%20pour%20un%20envoi%20d%27Abidjan%20vers%20Paris.">Demander mon devis sur WhatsApp →</a>
+      </div>
+
+      <div class="track" id="suivi">
+        <div class="kicker">Suivi</div>
+        <h3>Où est mon colis ?</h3>
+        <p>Vous avez déjà un numéro ou une référence ? Contactez notre équipe pour connaître l'état de votre envoi.</p>
+        <div class="track-row">
+          <input type="text" placeholder="Numéro ou référence du colis" aria-label="Numéro ou référence du colis">
+          <button type="button" onclick="contactTracking()">Suivre</button>
+        </div>
+        <div class="track-note">Le bouton vous redirige vers WhatsApp afin que notre équipe puisse vérifier votre envoi.</div>
+      </div>
+    </div>
+  </section>
+
+
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/kd-groupe-logo.png" alt="KD Groupe">
+        <p>Expédition de colis d'Abidjan vers Paris et service d'achat à l'international.</p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="#accueil">Accueil</a></li>
+          <li><a href="#services">Nos services</a></li>
+          <li><a href="#calendrier">Départs</a></li>
+          <li><a href="#fonctionnement">Comment ça marche</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="https://wa.me/2250501978675">WhatsApp</a></li>
+          <li><a href="tel:+2250501978675">+225 05 01 97 86 75</a></li>
+          <li><a href="#devis">Demander un devis</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="copyright">
+      <span>© 2026 KD Groupe. Tous droits réservés.</span>
+      <span>Expédier en toute sécurité.</span>
+    </div>
+  </div>
+</footer>
+
+<a class="whatsapp" href="https://wa.me/2250501978675?text=Bonjour%20KD%20Groupe%2C%20je%20souhaite%20des%20informations%20sur%20une%20exp%C3%A9dition%20Abidjan%20-%20Paris." aria-label="Contacter KD Groupe sur WhatsApp">
+  <svg viewBox="0 0 32 32" aria-hidden="true">
+    <path fill="currentColor" d="M19.11 17.27c-.28-.14-1.66-.82-1.92-.91-.26-.1-.45-.14-.64.14-.19.28-.73.91-.9 1.1-.16.19-.33.21-.61.07-.28-.14-1.18-.43-2.25-1.37-.83-.74-1.39-1.65-1.55-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.49.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.64-1.54-.88-2.11-.23-.55-.47-.48-.64-.49h-.55c-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34s1 2.72 1.14 2.91c.14.19 1.97 3.01 4.78 4.22.67.29 1.19.46 1.6.59.67.21 1.28.18 1.76.11.54-.08 1.66-.68 1.89-1.34.23-.66.23-1.22.16-1.34-.07-.12-.26-.19-.54-.33z"/>
+    <path fill="currentColor" d="M16.02 3.2c-7.08 0-12.83 5.75-12.83 12.83 0 2.26.59 4.47 1.71 6.41L3.1 28.8l6.51-1.71a12.8 12.8 0 0 0 6.4 1.71h.01c7.08 0 12.83-5.75 12.83-12.83S23.1 3.2 16.02 3.2zm0 23.48h-.01a10.62 10.62 0 0 1-5.41-1.48l-.39-.23-3.86 1.01 1.03-3.76-.25-.39a10.62 10.62 0 1 1 8.89 4.85z"/>
+  </svg>
+</a>
+
+<script>
+  (function(){
+    var items = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){
+      items.forEach(function(el){ el.classList.add('in'); });
+      return;
+    }
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    items.forEach(function(el){ observer.observe(el); });
+  })();
+
+  function contactTracking(){
+    const value = document.querySelector('#suivi input').value.trim();
+    const message = value
+      ? `Bonjour KD Groupe, je souhaite suivre mon colis. Ma référence est : ${value}.`
+      : `Bonjour KD Groupe, je souhaite suivre mon colis.`;
+    window.open('https://wa.me/2250501978675?text=' + encodeURIComponent(message), '_blank');
+  }
+</script>
+
+</body>
+</html>
