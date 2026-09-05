@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<!--
+  PAGE "AVIS CLIENTS EN DIRECT" — KD Groupe (version texte seul, sans photo)
+  ============================================================================
+  MISE EN PLACE (une seule fois) :
+
+  1. Crée un projet gratuit sur https://console.firebase.google.com
+  2. Active : Firestore Database (mode production) + Authentication > Anonyme
+     (PAS besoin de Storage ni de carte bancaire pour cette version)
+  3. Récupère ton "firebaseConfig" (Paramètres du projet > Ajouter une app Web)
+     et colle-le à la ligne "const firebaseConfig = {...}" plus bas.
+
+  4. Colle ces RÈGLES FIRESTORE (onglet Règles de Firestore) :
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /avis/{docId} {
+           allow read: if true;
+           allow create: if request.auth != null
+                         && request.resource.data.nom is string
+                         && request.resource.data.texte is string
+                         && request.resource.data.texte.size() < 1000;
+           allow update, delete: if false;
+         }
+       }
+     }
+
+  5. Enregistre ce fichier sous le nom "avis.html" dans ton repo GitHub
+     (kd-groupe-transit), à côté de ton index.html. Le lien à partager sera :
+     https://kd-groupe-transit.github.io/kd-groupe-transit/avis.html
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avis clients — KD Groupe</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #f7f7f5;
+    margin: 0;
+    padding: 20px;
+    color: #111;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 { color: #003b25; font-size: 24px; text-align: center; margin-bottom: 4px; }
+  .sub { text-align: center; color: #666; font-size: 14px; margin-bottom: 28px; }
+
+  form {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 36px;
+  }
+  label { display: block; font-size: 13px; font-weight: 600; color: #333; margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"], textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .stars { display: flex; gap: 6px; font-size: 26px; cursor: pointer; }
+  .stars span { color: #ddd; }
+  .stars span.active { color: #f5b301; }
+  .honeypot { position: absolute; left: -9999px; opacity: 0; }
+  button[type="submit"] {
+    margin-top: 18px; width: 100%; padding: 14px; background: #003b25; color: #fff;
+    border: none; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+  #msg { text-align: center; font-size: 13px; margin-top: 10px; }
+  #msg.ok { color: #1a7d3a; }
+  #msg.err { color: #c0392b; }
+
+  .avis-card {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 18px;
+    padding: 16px 18px;
+  }
+  .avis-stars { color: #f5b301; font-size: 15px; margin-bottom: 6px; }
+  .avis-texte { font-size: 14px; line-height: 1.5; color: #333; margin: 0 0 10px; }
+  .avis-nom { font-size: 13px; font-weight: 600; color: #003b25; margin: 0; }
+  .avis-date { font-size: 11px; color: #999; margin-top: 2px; }
+  #liste-vide { text-align: center; color: #999; font-size: 14px; padding: 20px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Avis clients KD Groupe</h1>
+  <p class="sub">Partage ton expérience — visible immédiatement, aucune connexion requise.</p>
+
+  <form id="form-avis">
+    <label for="nom">Ton nom</label>
+    <input type="text" id="nom" required maxlength="60" placeholder="Ex : Aïcha K.">
+
+    <label>Ta note</label>
+    <div class="stars" id="stars">
+      <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+    </div>
+
+    <label for="texte">Ton avis</label>
+    <textarea id="texte" required maxlength="500" placeholder="Décris ton expérience..."></textarea>
+
+    <!-- champ piège anti-robot : reste vide et invisible pour un humain -->
+    <input type="text" class="honeypot" id="site" tabindex="-1" autocomplete="off">
+
+    <button type="submit" id="btn-submit">Publier mon avis</button>
+    <p id="msg"></p>
+  </form>
+
+  <div id="liste-avis"></div>
+  <p id="liste-vide" style="display:none;">Aucun avis pour le moment. Sois le premier !</p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, onSnapshot,
+    query, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    getAuth, signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // ==== COLLE ICI TA CONFIG FIREBASE (Paramètres du projet > Ajouter une app Web) ====
+  const firebaseConfig = {
+    apiKey: "AIzaSyDKU-K87hIniewj8NrOLQpPaxhaFlMTC8U",
+    authDomain: "kd-groupe-avis.firebaseapp.com",
+    projectId: "kd-groupe-avis",
+    storageBucket: "kd-groupe-avis.firebasestorage.app",
+    messagingSenderId: "610984299136",
+    appId: "1:610984299136:web:987e64e19f9d353f0b7465"
+  };
+  // ======================================================================
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  signInAnonymously(auth).catch((e) => console.error("Auth erreur:", e));
+
+  // --- Gestion des étoiles ---
+  let noteChoisie = 0;
+  const starsEls = document.querySelectorAll("#stars span");
+  starsEls.forEach(el => {
+    el.addEventListener("click", () => {
+      noteChoisie = parseInt(el.dataset.v);
+      starsEls.forEach(s => s.classList.toggle("active", parseInt(s.dataset.v) <= noteChoisie));
+    });
+  });
+
+  // --- Soumission du formulaire ---
+  const form = document.getElementById("form-avis");
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("btn-submit");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.textContent = "";
+    msg.className = "";
+
+    // piège anti-robot : si rempli, on ignore silencieusement
+    if (document.getElementById("site").value) return;
+
+    const nom = document.getElementById("nom").value.trim();
+    const texte = document.getElementById("texte").value.trim();
+
+    if (!nom || !texte || noteChoisie === 0) {
+      msg.textContent = "Merci de remplir ton nom, une note et un avis.";
+      msg.className = "err";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Envoi en cours...";
+
+    try {
+      await addDoc(collection(db, "avis"), {
+        nom, texte, note: noteChoisie,
+        date: serverTimestamp()
+      });
+
+      form.reset();
+      noteChoisie = 0;
+      starsEls.forEach(s => s.classList.remove("active"));
+      msg.textContent = "Merci ! Ton avis est publié.";
+      msg.className = "ok";
+    } catch (err) {
+      console.error(err);
+      msg.textContent = "Une erreur est survenue, réessaie.";
+      msg.className = "err";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Publier mon avis";
+    }
+  });
+
+  // --- Affichage en temps réel des avis ---
+  const liste = document.getElementById("liste-avis");
+  const videMsg = document.getElementById("liste-vide");
+  const q = query(collection(db, "avis"), orderBy("date", "desc"));
+
+  onSnapshot(q, (snapshot) => {
+    liste.innerHTML = "";
+    if (snapshot.empty) {
+      videMsg.style.display = "block";
+      return;
+    }
+    videMsg.style.display = "none";
+
+    snapshot.forEach((doc) => {
+      const a = doc.data();
+      const etoiles = "★".repeat(a.note || 0) + "☆".repeat(5 - (a.note || 0));
+      const dateStr = a.date?.toDate ? a.date.toDate().toLocaleDateString("fr-FR") : "";
+
+      const card = document.createElement("div");
+      card.className = "avis-card";
+      card.innerHTML = `
+        <div class="avis-stars">${etoiles}</div>
+        <p class="avis-texte">${a.texte.replace(/</g, "&lt;")}</p>
+        <p class="avis-nom">${a.nom.replace(/</g, "&lt;")}</p>
+        <p class="avis-date">${dateStr}</p>
+      `;
+      liste.appendChild(card);
+    });
+  });
+</script>
+</body>
+</html>
