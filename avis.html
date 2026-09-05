@@ -185,8 +185,14 @@
       form.reset();
       noteChoisie = 0;
       starsEls.forEach(s => s.classList.remove("active"));
-      msg.textContent = "Merci ! Ton avis est publié.";
+      msg.textContent = "Merci ! Ton avis est publié. Redirection vers l'accueil...";
       msg.className = "ok";
+
+      // Redirige vers la page d'accueil après 2,5 secondes,
+      // le temps que le client lise le message de remerciement
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 2500);
     } catch (err) {
       console.error(err);
       msg.textContent = "Une erreur est survenue, réessaie.";
