@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <!--
-  PAGE "AVIS CLIENTS EN DIRECT" — KD Groupe (version texte seul, sans photo)
-  ============================================================================
+  PAGE "AVIS CLIENTS EN DIRECT" — KD Groupe (avec photo via Cloudinary, gratuit)
+  ================================================================================
   MISE EN PLACE (une seule fois) :
 
-  1. Crée un projet gratuit sur https://console.firebase.google.com
-  2. Active : Firestore Database (mode production) + Authentication > Anonyme
-     (PAS besoin de Storage ni de carte bancaire pour cette version)
-  3. Récupère ton "firebaseConfig" (Paramètres du projet > Ajouter une app Web)
-     et colle-le à la ligne "const firebaseConfig = {...}" plus bas.
+  1. Firebase (déjà fait) : Firestore + Authentication > Anonyme
 
-  4. Colle ces RÈGLES FIRESTORE (onglet Règles de Firestore) :
+  2. Cloudinary (nouveau, pour les photos, gratuit, sans carte bancaire) :
+     a. Va sur https://cloudinary.com → "Sign up free" (Google ou email)
+     b. Sur le tableau de bord, note ton "Cloud name" (en haut de la page)
+     c. Va dans Settings (roue crantée) → onglet "Upload"
+     d. Descends jusqu'à "Upload presets" → "Add upload preset"
+     e. Change "Signing Mode" de "Signed" à "Unsigned"
+     f. Donne-lui un nom (ex: kd_groupe_avis) → Save
+     g. Remplis CLOUDINARY_CLOUD_NAME et CLOUDINARY_UPLOAD_PRESET plus bas
+        avec ton "Cloud name" et le nom de ton preset
+
+  3. Colle ces RÈGLES FIRESTORE (onglet Règles de Firestore) :
      rules_version = '2';
      service cloud.firestore {
        match /databases/{database}/documents {
@@ -25,8 +31,8 @@
        }
      }
 
-  5. Enregistre ce fichier sous le nom "avis.html" dans ton repo GitHub
-     (kd-groupe-transit), à côté de ton index.html. Le lien à partager sera :
+  4. Enregistre ce fichier sous le nom "avis.html" dans ton repo GitHub
+     (kd-groupe-transit), à côté de ton index.html. Le lien à partager reste :
      https://kd-groupe-transit.github.io/kd-groupe-transit/avis.html
 -->
 <html lang="fr">
@@ -64,6 +70,7 @@
   .stars { display: flex; gap: 6px; font-size: 26px; cursor: pointer; }
   .stars span { color: #ddd; }
   .stars span.active { color: #f5b301; }
+  input[type="file"] { margin-top: 4px; font-size: 13px; }
   .honeypot { position: absolute; left: -9999px; opacity: 0; }
   button[type="submit"] {
     margin-top: 18px; width: 100%; padding: 14px; background: #003b25; color: #fff;
@@ -75,10 +82,11 @@
   #msg.err { color: #c0392b; }
 
   .avis-card {
-    background: #fff; border-radius: 14px;
+    background: #fff; border-radius: 14px; overflow: hidden;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 18px;
-    padding: 16px 18px;
   }
+  .avis-card img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+  .avis-body { padding: 16px 18px; }
   .avis-stars { color: #f5b301; font-size: 15px; margin-bottom: 6px; }
   .avis-texte { font-size: 14px; line-height: 1.5; color: #333; margin: 0 0 10px; }
   .avis-nom { font-size: 13px; font-weight: 600; color: #003b25; margin: 0; }
@@ -102,6 +110,9 @@
 
     <label for="texte">Ton avis</label>
     <textarea id="texte" required maxlength="500" placeholder="Décris ton expérience..."></textarea>
+
+    <label for="photo">Photo (optionnelle)</label>
+    <input type="file" id="photo" accept="image/*">
 
     <!-- champ piège anti-robot : reste vide et invisible pour un humain -->
     <input type="text" class="honeypot" id="site" tabindex="-1" autocomplete="off">
@@ -135,6 +146,11 @@
   };
   // ======================================================================
 
+  // ==== COLLE ICI TES INFOS CLOUDINARY (gratuit, pour héberger les photos) ====
+  const CLOUDINARY_CLOUD_NAME = "b8eneemv";
+  const CLOUDINARY_UPLOAD_PRESET = "kd_groupe_avis";
+  // ==============================================================================
+
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
@@ -151,6 +167,20 @@
     });
   });
 
+  // --- Upload d'une photo vers Cloudinary (gratuit, sans compte pour le client) ---
+  async function uploaderPhoto(fichier) {
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const data = new FormData();
+    data.append("file", fichier);
+    data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    data.append("folder", "avis-kd-groupe");
+
+    const reponse = await fetch(url, { method: "POST", body: data });
+    if (!reponse.ok) throw new Error("Échec de l'upload de la photo");
+    const resultat = await reponse.json();
+    return resultat.secure_url;
+  }
+
   // --- Soumission du formulaire ---
   const form = document.getElementById("form-avis");
   const msg = document.getElementById("msg");
@@ -166,6 +196,7 @@
 
     const nom = document.getElementById("nom").value.trim();
     const texte = document.getElementById("texte").value.trim();
+    const photoFile = document.getElementById("photo").files[0];
 
     if (!nom || !texte || noteChoisie === 0) {
       msg.textContent = "Merci de remplir ton nom, une note et un avis.";
@@ -177,8 +208,15 @@
     btn.textContent = "Envoi en cours...";
 
     try {
+      let photoURL = null;
+      if (photoFile) {
+        btn.textContent = "Envoi de la photo...";
+        photoURL = await uploaderPhoto(photoFile);
+        btn.textContent = "Envoi en cours...";
+      }
+
       await addDoc(collection(db, "avis"), {
-        nom, texte, note: noteChoisie,
+        nom, texte, note: noteChoisie, photoURL,
         date: serverTimestamp()
       });
 
@@ -224,10 +262,13 @@
       const card = document.createElement("div");
       card.className = "avis-card";
       card.innerHTML = `
-        <div class="avis-stars">${etoiles}</div>
-        <p class="avis-texte">${a.texte.replace(/</g, "&lt;")}</p>
-        <p class="avis-nom">${a.nom.replace(/</g, "&lt;")}</p>
-        <p class="avis-date">${dateStr}</p>
+        ${a.photoURL ? `<img src="${a.photoURL}" alt="Photo colis client">` : ""}
+        <div class="avis-body">
+          <div class="avis-stars">${etoiles}</div>
+          <p class="avis-texte">${a.texte.replace(/</g, "&lt;")}</p>
+          <p class="avis-nom">${a.nom.replace(/</g, "&lt;")}</p>
+          <p class="avis-date">${dateStr}</p>
+        </div>
       `;
       liste.appendChild(card);
     });
